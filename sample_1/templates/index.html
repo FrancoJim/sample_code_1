@@ -1,0 +1,21 @@
+<html>
+  <body>
+    <h1>Sample_Code_1: How many USD coins or bills does it take?</h1>
+    <form action="/" method="post">
+      <p>Enter USD Amount (Integer or Float):</p>
+      <p><input type="integer" name="amount" /></p>
+      <p><input type="submit" value="submit" /></p>
+    </form>
+    {% if coins_bills %}
+    <h2>Coins or Bills:</h2>
+    <p><b>Total:</b> ${{ coins_bills['total'] }}</p>
+    <br />
+    {% for coin_bill in coins_bills['change'] %}
+       <p><b>{{ coin_bill['denom_name'] }}:</b> {{ coin_bill['count'] }}</p>
+    {% endfor %} 
+      
+      {% elif not_numeric %}
+      <div>{{ not_numeric }}</div>
+    {% endif %}
+  </body>
+</html>

@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  web-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    ports:
+      - "5000:5000"
+    env_file:
+      - example.env
+    volumes:
+      - .:/app
+    profiles:
+      - dev
+
+  web-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile-prod
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    profiles:
+      - prod

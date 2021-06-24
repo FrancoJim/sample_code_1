@@ -1,0 +1,15 @@
+FROM python:3.10-alpine
+LABEL maintainer="Kevin Lang <k.j.lang.tech@gmail.com>"
+
+# Set the working directory & copy the application
+WORKDIR /app
+COPY . .
+
+# Install the application
+RUN pip install -U pip && \
+    pip install .
+
+EXPOSE 5000
+
+# Run the application
+ENTRYPOINT [ "flask", "run" ]
