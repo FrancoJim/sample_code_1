@@ -13,6 +13,17 @@ services:
       - .:/app
     profiles:
       - dev
+    depends_on:
+      - db-dev
+
+  db-dev:
+    image: postgres:latest
+    env_file:
+      - example.env
+    ports:
+      - "5432:5432"
+    profiles:
+      - dev
 
   web-prod:
     build:
@@ -22,5 +33,26 @@ services:
       - "5000:5000"
     env_file:
       - .env
+    depends_on:
+      - db-prod
     profiles:
       - prod
+
+  db-prod:
+    image: postgres:latest
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    profiles:
+      - prod
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/postgres
