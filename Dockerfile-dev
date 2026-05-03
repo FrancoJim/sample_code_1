@@ -1,0 +1,17 @@
+FROM python:3.13-alpine
+LABEL maintainer="Kevin Lang <k.j.lang.tech@gmail.com>"
+
+WORKDIR /app
+
+# Install deps first for layer caching
+COPY pyproject.toml .
+COPY sample_1/ sample_1/
+RUN pip install --no-cache-dir -e ".[dev]"
+
+EXPOSE 5000
+
+ENV FLASK_APP=sample_1.app
+ENV FLASK_DEBUG=1
+
+# Volume mount at runtime overlays source for live reload
+CMD ["flask", "run", "--host=0.0.0.0"]

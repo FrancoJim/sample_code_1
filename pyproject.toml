@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sample_code_1"
+version = "1.3.0"
+description = "USD coin/bill change calculator — web app and REST API"
+authors = [{name = "Kevin Lang", email = "k.j.lang.tech@gmail.com"}]
+license = {text = "MIT"}
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.1",
+    "gunicorn>=23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/FrancoJim/sample_code_1"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sample_1*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = ["setup.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

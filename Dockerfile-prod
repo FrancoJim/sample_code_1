@@ -1,0 +1,23 @@
+# --- build stage ---
+FROM python:3.13-alpine AS builder
+WORKDIR /build
+
+COPY pyproject.toml .
+COPY sample_1/ sample_1/
+
+RUN pip install --no-cache-dir build && python -m build --wheel
+
+# --- runtime stage ---
+FROM python:3.13-alpine
+LABEL maintainer="Kevin Lang <k.j.lang.tech@gmail.com>"
+WORKDIR /app
+
+COPY --from=builder /build/dist/*.whl /tmp/
+RUN pip install --no-cache-dir /tmp/*.whl && \
+    rm -rf /tmp/*.whl && \
+    adduser -D appuser
+
+USER appuser
+EXPOSE 5000
+
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "sample_1.app:app"]

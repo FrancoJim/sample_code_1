@@ -1,0 +1,29 @@
+# Compose's default project name is the directory containing this file ("devcontainer"),
+# which collides across repos and can attach the wrong built image (e.g. another project's
+# image without user "dev"). Fix by pinning project + image names.
+name: sample_code_1
+
+services:
+
+  # ── Primary dev shell ───────────────────────────────────────────────────────
+  # This is the container Cursor / VS Code attaches to.
+  # The host Docker socket is mounted so you can run `docker` / `docker compose`
+  # against OrbStack's daemon from inside the container.
+  devcontainer:
+    image: sample_code_1_devcontainer
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # workspace source (cached = macOS VirtioFS perf hint)
+      - ..:/workspace/sample_code_1:cached
+      # Docker socket — gives access to the OrbStack daemon on the host
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+      DOCKER_BUILDKIT: "1"
+    # keep the container alive for the IDE to attach to
+    command: sleep infinity
+    # Do not publish host ports here: 5000 on macOS is often taken (AirPlay, IDE, other
+    # containers). Cursor/VS Code forwards container port 5000 via devcontainer.json
+    # "forwardPorts" without binding the host at compose time.

@@ -1,0 +1,5 @@
+# Only bashrc.sh and Dockerfile are needed for the devcontainer image build.
+# Exclude everything else so the build context stays minimal.
+devcontainer.json
+docker-compose.yml
+.dockerignore
