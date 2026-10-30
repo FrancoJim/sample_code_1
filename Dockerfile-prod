@@ -1,23 +1,36 @@
 # --- build stage ---
-FROM python:3.13-alpine AS builder
+FROM python:3.14-alpine AS builder
 WORKDIR /build
 
-COPY pyproject.toml .
+COPY pyproject.toml README.md MANIFEST.in ./
 COPY sample_1/ sample_1/
 
 RUN pip install --no-cache-dir build && python -m build --wheel
 
 # --- runtime stage ---
-FROM python:3.13-alpine
+FROM python:3.14-alpine
 LABEL maintainer="Kevin Lang <k.j.lang.tech@gmail.com>"
+LABEL org.opencontainers.image.source="https://github.com/FrancoJim/sample_code_1"
+LABEL org.opencontainers.image.licenses="MIT"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    GUNICORN_WORKERS=2
+
 WORKDIR /app
 
+# Pinned deps first (better layer caching), then the app wheel without re-resolving deps
+COPY requirements.txt .
 COPY --from=builder /build/dist/*.whl /tmp/
-RUN pip install --no-cache-dir /tmp/*.whl && \
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir --no-deps /tmp/*.whl && \
     rm -rf /tmp/*.whl && \
-    adduser -D appuser
+    adduser -D -H appuser
 
 USER appuser
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "sample_1.app:app"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:5000/healthz || exit 1
+
+CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:5000 --workers ${GUNICORN_WORKERS} --access-logfile - sample_1.app:app"]

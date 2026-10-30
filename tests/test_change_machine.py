@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+import pytest
+
 from sample_1.change_machine import make_change
 
 
@@ -68,3 +70,23 @@ def test_two_dollar_bill():
     result = make_change(2.00)
     assert len(result["change"]) == 1
     assert _breakdown(result)["Two Dollar Bill"] == 1
+
+
+def test_string_input_skips_float():
+    result = make_change("1.15")
+    assert result["total"] == Decimal("1.15")
+
+
+def test_rounds_half_cent_up():
+    assert make_change("0.005")["total"] == Decimal("0.01")
+    assert "error" in make_change("0.004")
+
+
+@pytest.mark.parametrize("bad", ["nan", "NaN", "inf", "-inf", "1e30", "abc", "", "   ", None])
+def test_bad_input_returns_error_not_exception(bad):
+    assert "error" in make_change(bad)
+
+
+def test_max_amount_allowed():
+    result = make_change("1000000000")
+    assert _breakdown(result)["Hundred Dollar Bill"] == 10_000_000

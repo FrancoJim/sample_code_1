@@ -1,4 +1,4 @@
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 USD_DENOMS = (
     ("Hundred Dollar Bill", Decimal("100.00")),
@@ -15,12 +15,35 @@ USD_DENOMS = (
     ("Penny", Decimal("0.01")),
 )
 
+CENT = Decimal("0.01")
+MAX_AMOUNT = Decimal("1000000000.00")
 
-def make_change(total: float | int = 0) -> dict:
-    amount = Decimal(str(total)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
+def parse_amount(raw: str | int | float | Decimal | None) -> Decimal | str:
+    """Turn user input into a positive, cent-rounded Decimal, or return an error message.
+
+    Strings go straight to Decimal so "1.15" never passes through float.
+    """
+    if raw is None or (isinstance(raw, str) and not raw.strip()):
+        return "Please enter an amount"
+    try:
+        amount = Decimal(raw.strip() if isinstance(raw, str) else str(raw))
+    except InvalidOperation:
+        return "Amount must be a number"
+    if not amount.is_finite():
+        return "Amount must be a finite number"
+    if amount > MAX_AMOUNT:
+        return f"Amount must be no more than {MAX_AMOUNT:,}"
+    amount = amount.quantize(CENT, rounding=ROUND_HALF_UP)
     if amount <= 0:
-        return {"error": "Please enter a positive number"}
+        return "Please enter a positive number"
+    return amount
+
+
+def make_change(total: str | int | float | Decimal | None = 0) -> dict:
+    amount = parse_amount(total)
+    if isinstance(amount, str):
+        return {"error": amount}
 
     remaining = amount
     breakdown = []
